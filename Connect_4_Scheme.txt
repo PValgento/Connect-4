@@ -1,0 +1,1307 @@
+;Patrick Valgento
+;11/25/2015
+
+
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv   Setup Code   vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+(require racket/gui/base)
+(require racket/draw)
+
+(define PJVGame null)
+
+
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Visual/Graphic Setup Code  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+;Variable for display window for Connect Four Visual to go to.
+;	-If you'd like to be able to move the window, [style...] line can be commented out.
+;	-Window should neither appear over the default racket location nor take away window focus if 
+;		[style...] is left in
+(define PJVFrame (new frame%
+                [label "Connect Four Visual Window"]
+                [width 800]
+                [height 600]
+		[x 750]
+		[y 30]
+		[border 5]
+		[min-width 800]
+		[min-height 600]
+		[stretchable-width 800]
+		[stretchable-height 1200]
+		[alignment '(center top)]
+		;[style '(no-resize-border no-caption float)]
+	      )
+)
+
+(send PJVFrame create-status-line)
+(send PJVFrame set-status-text "No game has been started.")
+
+(define PJVPlayer1 "Player 1")
+(define PJVPlayer2 "Player 2")
+(define PJVMenuPanel
+	(new horizontal-panel% [parent PJVFrame]
+	[alignment '(left center)]
+	)
+)
+	
+(new button% [parent PJVMenuPanel]
+             [label "Main Menu"]
+ 	     [callback (lambda (button event)
+                (PJVMainMenu))])	
+)
+(send PJVFrame delete-child PJVMenuPanel)
+
+
+
+;Variable for canvas<%> object, what will be placed on the window and will represent the board state
+(define PJVMyCanvas 
+(new canvas% [parent PJVFrame]
+		[min-width 600]
+		[min-height 550]
+		[stretchable-width 600]
+		[stretchable-height 450]
+             [paint-callback
+              (lambda (canvas dc)
+                (send dc set-scale 4 4)
+                (send dc set-text-foreground "black")
+                (send dc draw-text "Welcome" 70 15)
+		(send dc draw-text "To" 90 55)
+		(send dc draw-text "Connect Four!" 50 95)
+		
+)])
+)
+(define PJVPanel (new vertical-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+)
+(new button% [parent PJVPanel]
+	[label "Start Game"]
+	[callback (lambda (button event) (set! PJVPlayer1 (send PJVField1 get-value))
+			(set! PJVPlayer2 (send PJVField2 get-value))
+                        (send PJVFrame add-child PJVMenuPanel) (PJVStartGame))]
+)  
+(define PJVField1
+(new text-field%
+	[parent PJVPanel]
+	[label "Player 1 (Blue)'s Name"]
+	[init-value "Player 1"]
+	[min-width 10]
+	[stretchable-width 20]
+	[style '(single)]
+)
+)
+(define PJVField2
+(new text-field%
+	[parent PJVPanel]
+	[label "Player 2 (Red)'s Name"]
+	[init-value "Player 2"]
+	[min-width 10]
+	[stretchable-width 20]
+)
+)
+(define (PJVMainMenu)
+	(send PJVFrame delete-child PJVMyCanvas)
+	(send PJVFrame delete-child PJVPanel)
+	(send PJVFrame delete-child PJVMenuPanel)
+	(set! PJVMyCanvas
+		(new canvas% [parent PJVFrame]
+		[min-width 600]
+		[min-height 550]
+		[stretchable-width 600]
+		[stretchable-height 450]
+             [paint-callback
+              (lambda (canvas dc)
+                (send dc set-scale 4 4)
+                (send dc set-text-foreground "black")
+                (send dc draw-text "Welcome" 70 15)
+		(send dc draw-text "To" 90 55)
+		(send dc draw-text "Connect Four!" 50 95)
+	      )		
+	     ]
+		)
+	)
+	
+	(set! PJVPanel
+		 (new vertical-panel% [parent PJVFrame]
+			[alignment '(center center)]
+		 )
+	)
+	(new button% [parent PJVPanel]
+             [label "Start Game"]
+             [callback (lambda (button event) (set! PJVPlayer1 (send PJVField1 get-value))
+			(set! PJVPlayer2 (send PJVField2 get-value))
+                        (send PJVFrame add-child PJVMenuPanel) (PJVStartGame))])
+	(set! PJVField1
+(new text-field%
+	[parent PJVPanel]
+	[label "Player 1 (Blue)'s Name"]
+	[init-value "Player 1"]
+	[min-width 10]
+	[stretchable-width 20]
+	[style '(single)]
+)
+	)
+	(set! PJVField2
+(new text-field%
+	[parent PJVPanel]
+	[label "Player 2 (Red)'s Name"]
+	[init-value "Player 2"]
+	[min-width 10]
+	[stretchable-width 20]
+)
+	)
+)
+
+
+
+
+;Initially opens when functions are loaded as a title screen, can be commented out if convenient
+;vvvvvvvvvvvvvvvvvvv
+(send PJVFrame show #t)
+
+
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Visual/Graphic Setup Code ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   End of Setup Code   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Utility/Tool functions  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+(define (PJVGreaterOf a b)
+	(if (> a b)
+		a
+		b 
+	)
+)
+
+	(set! PJVGame 	
+		(cons
+			( - (car PJVGame ))
+			(cdr PJVGame )
+		)
+	)
+)
+
+(define (PJVFindRow column)
+	(PJVFindRowRec 1 column)
+)
+(define (PJVFindRowother column)
+	(PJVFindRowRecother 1 column)
+)
+(define (PJVFindRowRecother row column)
+	(if (= (PJVGetCell (cdr PJVGame ) row column) 0)
+		(- row 1)
+		(cond
+			[(= row 70) 6]
+			[(= row 6) 6]
+			[#t (PJVFindRowRecother (+ row 1) column)]
+		)
+		
+	)
+)
+
+(define (PJVFindRowRec row column)
+	(if (= (PJVGetCell (cdr PJVGame ) row column) 0)
+		row
+		(cond
+			[(= row 6) 6]
+			[#t (PJVFindRowRec (+ row 1) column)]
+		)
+		
+	)
+)
+(define (PJVWonGame player)
+	(send PJVMyCanvas suspend-flush)
+	(send PJVFrame delete-child PJVPanel)
+	(send PJVFrame delete-child PJVMenuPanel)
+	(send PJVFrame delete-child PJVMyCanvas)
+	(cond [ (= player 1)
+		(send PJVFrame set-status-text (~a PJVPlayer1 " has won the game! Congratulations!"))
+		(set! PJVMyCanvas
+			(new canvas% [parent PJVFrame]
+			[min-width 600]
+			[min-height 550]
+			[stretchable-width 600]
+			[stretchable-height 450]
+		             [paint-callback
+        		      (lambda (canvas dc)
+                		(send dc set-scale 3 3)
+		                (send dc set-text-foreground "Black")
+        		        (send dc draw-text "Congratulations!" 70 30)
+				(send dc draw-text (~a PJVPlayer1) 80 80)
+				(send dc draw-text "Has Won the Game!" 60 140)
+			      )
+			     ]
+			)
+		)
+		
+	      ]
+	      [#t
+		(send PJVFrame set-status-text (~a PJVPlayer2 " has won the game! Congratulations!"))
+		(set! PJVMyCanvas
+			(new canvas% [parent PJVFrame]
+			[min-width 600]
+			[min-height 550]
+			[stretchable-width 600]
+			[stretchable-height 450]
+		             [paint-callback
+        		      (lambda (canvas dc)
+                		(send dc set-scale 3 3)
+		                (send dc set-text-foreground "Black")
+        		        (send dc draw-text "Congratulations!" 70 30)
+				(send dc draw-text (~a PJVPlayer2) 80 80)
+				(send dc draw-text "Has Won the Game!" 60 140)
+			      )
+			     ]
+			)
+		)
+		
+	      ]
+	)
+	(set! PJVGame (cons (* 100 (car PJVGame )) (cdr PJVGame )))
+	(set! PJVPanel (new horizontal-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+	)
+	(new button% [parent PJVPanel]
+             [label "Start New Game"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVStartGame))])
+	(new button% [parent PJVPanel]
+             [label "Show Game"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVShowGame))])
+	(set! PJVMenuPanel (new horizontal-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+	)
+	(new button% [parent PJVMenuPanel]
+             [label "Main Menu"]
+ 	     [callback (lambda (button event)
+                (PJVMainMenu))]	
+	)
+
+
+	
+	(send PJVMyCanvas resume-flush)	
+	(send PJVFrame show #t)
+)
+(define (PJVDisplayDraw)
+	(send PJVMyCanvas suspend-flush)
+	(send PJVFrame delete-child PJVPanel)
+	(send PJVFrame delete-child PJVMyCanvas)
+	(send PJVFrame delete-child PJVMenuPanel)
+		(send PJVFrame set-status-text "Game has ended in a draw. Please Reset or go to Main Menu")
+		(set! PJVMyCanvas
+			(new canvas% [parent PJVFrame]
+			[min-width 600]
+			[min-height 550]
+			[stretchable-width 600]
+			[stretchable-height 450]
+		             [paint-callback
+        		      (lambda (canvas dc)
+                		(send dc set-scale 10 10)
+		                (send dc set-text-foreground "Black")
+        		        (send dc draw-text "Draw!" 20 20)
+			      )
+			     ]
+			)
+		)
+	(set! PJVPanel (new horizontal-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+	)
+	(new button% [parent PJVPanel]
+             [label "Start New Game"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVStartGame))])
+	(new button% [parent PJVPanel]
+             [label "Show Game"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVShowGame))])
+	(set! PJVMenuPanel (new horizontal-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+	)
+	(new button% [parent PJVMenuPanel]
+             [label "Main Menu"]
+ 	     [callback (lambda (button event)
+                (PJVMainMenu))])	
+	
+
+	(set! PJVGame (cons 5 (cdr PJVGame )))
+	(send PJVMyCanvas resume-flush)	
+	(send PJVFrame show #t)
+)
+(define (PJVAbsolute number)
+	(if (< number 0)
+		(* number (- 1))
+		number
+	)
+)
+
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Utility/Tool functions  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Phase 1, Matrix Manipulation  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+;#1 Getting the value in a cell given the row & column 
+
+(define (PJVGetCell matrix row column)
+	(PJVGetCellColumn (PJVGetCellRow matrix row) column)	
+)
+(define (PJVGetCellColumn matrix column)
+	(if (= column 1)
+		(car matrix)
+		(PJVGetCellColumn (cdr matrix) (- column 1))
+	)
+)
+(define (PJVGetCellRow matrix row)
+	(if (= row 1)
+		(car matrix)
+		(PJVGetCellRow (cdr matrix) (- row 1))
+	)
+)
+
+;#2 Replacing value in a cell given the row & column
+
+(define (PJVSetCell matrix row column item)
+	(if (= row 1)
+		(cons
+			(PJVReplaceRow (car matrix) column item)
+			(cdr matrix)
+		)
+		(cons
+			(car matrix)
+			(PJVSetCell (cdr matrix) (- row 1) column item)
+		)
+	)
+)
+(define (PJVReplaceRow matrix column item)
+	(if (= column 1)
+		(cons item (cdr matrix))
+		(cons 
+			(car matrix) 
+			(PJVReplaceRow (cdr matrix) (- column 1) item)
+		)
+	)
+)
+
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Phase 1, Matrix Manipulation  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Phase 2, Connect Four Game  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+(define (PJVStartGame)
+	(set! PJVGame 
+	   '( 
+		1 
+		(0 0 0 0 0 0 0) 
+		(0 0 0 0 0 0 0) 
+		(0 0 0 0 0 0 0) 
+		(0 0 0 0 0 0 0) 
+		(0 0 0 0 0 0 0) 
+		(0 0 0 0 0 0 0)
+	    )
+	)
+	(send PJVFrame set-status-text (~a "Game has started! Currently " PJVPlayer1 "'s turn."))
+	(PJVShowGame)
+	(send PJVFrame show #t)
+)
+
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Move Functions  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+(define (PJVMarkMove column)
+	(cond
+	[(not (= (PJVAbsolute (car PJVGame)) 100))
+		(cond [(not (= (car PJVGame) 5))
+		(PJVMarkRow 1 column)
+		(cond
+			[(PJVWinP column) (PJVWonGame (- (car PJVGame )))]
+			[(PJVDraw) (PJVDisplayDraw)]
+			[#t (PJVShowGame)]		
+		)
+		])
+	]
+	)
+)
+
+(define (PJVMarkRow row column)
+	(if (= (PJVGetCell (cdr PJVGame ) row column) 0)
+		(set! PJVGame 
+			(cons
+				( - (car PJVGame ))
+				(PJVSetCell (cdr PJVGame ) row column (car PJVGame ))
+			)
+		)
+		(if (> row 5)
+			(set! PJVGame (cons (- (car PJVGame ) 10) (cdr PJVGame )))
+			(PJVMarkRow (+ row 1) column)
+		)
+	)
+)
+(define (PJVMakeMove)
+	;Cond used to avoid infinite loop of choosing a random number until a legal move has been found
+	(cond 
+		[(not (PJVDraw))
+			(PJVMarkMove (PJVChooseMove))	
+		]
+	)
+)
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Move Functions ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  AI Functions  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+(define (PJVChooseMove)
+	(cond
+		[(PJVWillWinP 1) 1]
+		[(PJVWillWinP 2) 2]
+		[(PJVWillWinP 3) 3]
+		[(PJVWillWinP 4) 4]
+		[(PJVWillWinP 5) 5]
+		[(PJVWillWinP 6) 6]
+		[(PJVWillWinP 7) 7]
+		[#t
+			(cond
+				[(PJVWillWinPother 10 (- (car PJVGame))) 1]
+				[(PJVWillWinPother 20 (- (car PJVGame))) 2]
+				[(PJVWillWinPother 30 (- (car PJVGame))) 3]
+				[(PJVWillWinPother 40 (- (car PJVGame))) 4]
+				[(PJVWillWinPother 50 (- (car PJVGame))) 5]
+				[(PJVWillWinPother 60 (- (car PJVGame))) 6]
+				[(PJVWillWinPother 70 (- (car PJVGame))) 7]
+				[#t
+					(cond
+						[(PJVTwoWayWin (PJVFindRow 1) 1 (car PJVGame) ) 1]
+						[(PJVTwoWayWin (PJVFindRow 2) 2 (car PJVGame) ) 2]
+						[(PJVTwoWayWin (PJVFindRow 3) 3 (car PJVGame) ) 3]
+						[(PJVTwoWayWin (PJVFindRow 4) 4 (car PJVGame) ) 4]
+						[(PJVTwoWayWin (PJVFindRow 5) 5 (car PJVGame) ) 5]
+						[(PJVTwoWayWin (PJVFindRow 6) 6 (car PJVGame) ) 6]
+						[(PJVTwoWayWin (PJVFindRow 7) 7 (car PJVGame) ) 7]
+						[#t (PJVChooseRandom (+ (random 7) 1))]
+					)
+				]
+			)
+
+		]
+
+	)
+)
+(define (PJVChooseRandom randomN)
+	(if (PJVLegalMoveP randomN)
+		randomN
+		(PJVChooseMove)
+	)
+)
+
+
+(define (PJVWillWinP column)
+	(PJVWillWinPother (* column 10) (car PJVGame ))
+)
+(define (PJVWillWinPother column player)
+	(if (> column 9)
+		(cond
+			[(not (PJVLegalMoveP (/ column 10))) #f]
+			[(PJVHorizontalTest (PJVFindRow (/ column 10)) (/ column 10) player) #t]
+			[(PJVVerticalTest (PJVFindRow (/ column 10)) (/ column 10) player) #t]
+			[(PJVDiagonalCheck (PJVFindRow (/ column 10)) (/ column 10) player) #t]
+			[#t #f]
+		)
+		(cond
+			[(not (PJVLegalMoveP column)) #f]
+			[(PJVHorizontalTest (PJVFindRowother column) column player) #t]
+			[(PJVVerticalTest (PJVFindRowother column) column player) #t]
+			[(PJVDiagonalCheck (PJVFindRowother column) column player) #t]
+			[#t #f]
+		)
+	)
+)
+
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of AI Functions ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(define (PJVWinP last)
+	(if (= (PJVFindRow last) 1)
+		#f
+		(PJVWillWinPother last (- (car PJVGame )))
+	)
+)
+
+
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  Legality Functions  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+(define (PJVLegalMoveP column)
+	(if (= (PJVGetCell (cdr PJVGame ) 6 column) 0)
+		#t
+		#f
+	)
+)
+(define (PJVDraw)			
+	(PJVDrawCol 1)
+)
+(define (PJVDrawCol column)
+	(if (PJVLegalMoveP column)
+		#f
+		(if (= column 7)
+			#t
+			(PJVDrawCol (+ column 1))
+		)
+	)	 
+)
+(define (PJVVerticalTest row column player)
+(cond
+	[(> row 5) (> (+ 1 (PJVVerticalDown (- row 1) column player)) 3)]
+	[(< row 2) (> (+ 1 (PJVVerticalUp (+ row 1) column player)) 3)]
+	[#t (> (+ (PJVVerticalUp (+ row 1) column player) (PJVVerticalDown (- row 1) column player) 1) 3)]
+		
+)
+)
+(define (PJVVerticalUp row column player)
+	(+
+		(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+			(if (> row 5)
+				1
+				(+ 1 (PJVVerticalUp (+ row 1) column player) )
+			)
+			0
+		)
+	)
+)
+(define (PJVVerticalDown row column player)
+	(+
+		(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+			(if (< row 2)
+				1
+				(+ 1 (PJVVerticalDown (- row 1) column player) )
+			)
+			0
+		)
+	)
+)
+
+
+
+
+
+(define (PJVHorizontalTest row column player)
+(cond
+	[(> column 6) (> (+ 1 (PJVHorizontalLeft row (- column 1) player)) 3)]
+	[(< column 2) (> (+ 1 (PJVHorizontalRight row (+ column 1) player)) 3)]
+	[(PJVLegalMoveP column) (> (+ 1 (PJVHorizontalLeft row (- column 1) player) (PJVHorizontalRight row (+ column 1) player))  3)]
+	[#t #f]
+)
+)
+
+
+(define (PJVHorizontalLeft row column player)
+	(+
+		(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+			(if (< column 2)
+				1
+				(+ 1 (PJVHorizontalLeft row (- column 1) player))
+			)
+			0
+		)
+	)
+)
+(define (PJVHorizontalRight row column player)
+	(+
+		(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+			(if (> column 6)
+				1
+				(+ 1 (PJVHorizontalRight row (+ column 1) player))
+			)
+			0
+		)
+	)
+)
+(define (PJVDiagonalCheck row column player) 
+	(cond
+		[(< column 2)
+			(cond
+				[(< row 2) (> (+ 1 (PJVDiagUR (+ row 1) (+ column 1) player)) 3)]
+				[(> row 5) (> (+ 1 (PJVDiagDR (- row 1) (+ column 1) player)) 3)]
+				[#t (> (PJVGreaterOf
+					(+ 1 (PJVDiagUR (+ row 1) (+ column 1) player))
+					(+ 1 (PJVDiagDR (- row 1) (+ column 1) player))
+				) 3)]
+			)
+		]
+		[(> column 6)
+			(cond
+				[(< row 2) (> (+ 1 (PJVDiagUL (+ row 1) (- column 1) player)) 3)]
+				[(> row 5) (> (+ 1 (PJVDiagDL (- row 1) (- column 1) player)) 3)]
+				[#t (> (PJVGreaterOf
+					(+ 1 (PJVDiagUL (+ row 1) (- column 1) player))
+					(+ 1 (PJVDiagDL (- row 1) (- column 1) player))
+				) 3)]
+			)
+		]
+		[(< row 2)
+			(> (PJVGreaterOf
+				(+ 1 (PJVDiagUR (+ row 1) (+ column 1) player))
+				(+ 1 (PJVDiagUL (+ row 1) (- column 1) player))
+			) 3)
+		]
+		[(> row 5)
+			(> (PJVGreaterOf
+				(+ 1 (PJVDiagDR (- row 1) (+ column 1) player))
+				(+ 1 (PJVDiagDL (- row 1) (- column 1) player))
+			) 3)
+		]
+		[#t
+			(> (PJVGreaterOf
+				(+
+					1
+					(PJVDiagUR (+ row 1) (+ column 1) player)
+					(PJVDiagDL (- row 1) (- column 1) player)
+				)
+				(+
+					1
+					(PJVDiagUL (+ row 1) (- column 1) player)
+					(PJVDiagDR (- row 1) (+ column 1) player)
+				)
+			) 3)
+		]				
+	)
+)
+
+
+
+(define (PJVDiagUL row column player) #t
+	(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+		(cond
+			[(< column 2) 1]
+			[(> row 5) 1]
+			[#t (+ 1 (PJVDiagUL (+ row 1) (- column 1) player))]
+		)
+		0
+	)
+)
+(define (PJVDiagUR row column player) #t
+	(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+		(cond
+			[(> column 6) 1]
+			[(> row 5) 1]
+			[#t (+ 1 (PJVDiagUR (+ row 1) (+ column 1) player))]
+		)
+		0
+	)
+)
+(define (PJVDiagDL row column player) #t
+	(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+		(cond
+			[(< column 2) 1]
+			[(< row 2) 1]
+			[#t (+ 1 (PJVDiagDL (- row 1) (- column 1) player))]
+		)
+		0
+	)
+)
+(define (PJVDiagDR row column player) #t
+	(if (= (PJVGetCell (cdr PJVGame ) row column) player)
+		(cond
+			[(> column 6) 1]
+			[(< row 2) 1]
+			[#t (+ 1 (PJVDiagDR (- row 1) (+ column 1) player))]
+		)
+		0
+	)
+)
+	
+(define (PJVTwoWayWin row column player)
+	(>
+		(+
+			(PJVTwoCheckV row column player)
+			(PJVTwoCheckH row column player)
+			(PJVTwoCheckD1 row column player)
+			(PJVTwoCheckD2 row column player)
+		)
+		1
+	)
+)
+(define (PJVTwoCheckV row column player)
+	(if (< row 6)
+		(if
+			(>
+				(+ 1 (PJVVerticalDown row column player))
+				2
+			)
+			1
+			0
+		)
+		0
+	)
+)
+(define (PJVTwoCheckH row column player)
+	(cond
+		[(= column 1) 0]
+		[(= column 7) 0]
+		[(= (PJVGetCell (cdr PJVGame) row (- column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVHorizontalRight row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[(= (PJVGetCell (cdr PJVGame) row (+ column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVHorizontalLeft row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[#t 0]
+	)
+)
+(define (PJVTwoCheckD1 row column player);UR & DL "/"
+	(cond
+		[(= column 1) 0]
+		[(= column 7) 0]
+		[(= row 1) 0]
+		[(= row 6) 0]
+		[ (= (PJVGetCell (cdr PJVGame) (+ row 1) (+ column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVDiagDL row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[ (= (PJVGetCell (cdr PJVGame) (- row 1) (- column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVDiagUR row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[#t 0]
+	)
+)
+(define (PJVTwoCheckD2 row column player);UL & DR "\"
+	(cond
+		[(= column 1) 0]
+		[(= column 7) 0]
+		[(= row 1) 0]
+		[(= row 6) 0]
+		[ (= (PJVGetCell (cdr PJVGame) (+ row 1) (- column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVDiagDR row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[ (= (PJVGetCell (cdr PJVGame) (- row 1) (+ column 1) ) 0)
+			(if 
+				(>
+					(+ 1 (PJVDiagUL row column player))
+					2
+				)
+				1
+				0
+			)
+		]
+		[#t 0]
+	)
+)
+
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Legality Functions ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+(define (PJVShowGame)
+
+(cond [(= (car PJVGame ) (- 11)) 
+	(send PJVFrame set-status-text "Player has picked an illegal move! Please choose a column that is not full!")
+	(set! PJVGame (cons (- 1) (cdr PJVGame)))
+]
+[(= (car PJVGame ) (- 9)) 
+	(send PJVFrame set-status-text "Player has picked an illegal move! Please choose a column that is not full!")
+	(set! PJVGame (cons 1 (cdr PJVGame)))
+]
+
+[#t
+	(send PJVMyCanvas suspend-flush)
+	(send PJVFrame delete-child PJVMyCanvas)
+	(send PJVFrame delete-child PJVPanel)
+	(cond 
+		[(= (car PJVGame ) -1) (send PJVFrame set-status-text (~a "Current Turn: " PJVPlayer2 "."))]
+		[(= (car PJVGame ) 1) (send PJVFrame set-status-text (~a "Current Turn: " PJVPlayer1 "."))]
+		[#t (send PJVFrame set-status-text "Game is Over. Please Reset the Board or Return to the Main Menu.")]
+	)
+	(set! PJVMyCanvas
+	(new canvas% [parent PJVFrame]
+		[min-width 600]
+		[min-height 550]
+		[stretchable-width 600]
+		[stretchable-height 450]
+             [paint-callback
+              (lambda (canvas dc)
+                (send dc set-scale 2 2)
+                (send dc set-text-foreground "Black")
+		(cond 
+			[(= (car PJVGame ) 100) (send dc draw-text (~a "Game is Over! Winner: " PJVPlayer2 "!") 50 11)]
+			[(= (car PJVGame ) (- 100)) (send dc draw-text (~a "Game is Over! Winner: " PJVPlayer1 "!") 50 11)]
+	                [(= (car PJVGame) 5) (send dc draw-text "Game Ended in a Draw." 50 11)] 
+			[#t (send dc set-scale 3 3) (send dc draw-text "Welcome to Connect Four!" 50 0)]
+		)
+                (send dc set-scale 3 3)
+		(send dc set-smoothing 'smoothed)
+		(send dc set-brush "yellow" 'solid)
+
+(send dc draw-rectangle
+      30 30   ; 
+      200 145)	;
+(send dc set-brush "white" 'solid)
+
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+
+(send dc draw-ellipse
+      40 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+
+(send dc draw-ellipse
+      67 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 35    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 6 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 6 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 35    ; 
+      20 20) ; 
+
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      40 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      67 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 58    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 5 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 5 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 58    ; 
+      20 20) ; 
+
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      40 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      67 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 81    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 4 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 4 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 81    ; 
+      20 20) ; 
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      40 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      67 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 104    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 3 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 3 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 104    ; 
+      20 20) ; 
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      40 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      67 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 127    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 2 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 2 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 127    ; 
+      20 20) ; 
+
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 1) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 1) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      40 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 2) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 2) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      67 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 3) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 3) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      94 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 4) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 4) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      121 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 5) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 5) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      148 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 6) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 6) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      175 150    ; 
+      20 20) ; 
+(cond 
+	[(< (PJVGetCell (cdr PJVGame ) 1 7) 0) (send dc set-brush "red" 'solid)]
+	[(> (PJVGetCell (cdr PJVGame ) 1 7) 0) (send dc set-brush "blue" 'solid)]
+	[#t (send dc set-brush "white" 'solid)]
+)
+(send dc draw-ellipse
+      202 150    ; 
+      20 20) ; 
+
+); lambda
+];paint
+); (new
+); set
+
+(set! PJVPanel (new horizontal-panel% [parent PJVFrame]
+	[alignment '(center center)]
+		)
+)
+(new button% [parent PJVPanel]
+             [label "Reset Game"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVStartGame))])
+(new button% [parent PJVPanel]
+             [label "1"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 1))])
+(new button% [parent PJVPanel]
+             [label "2"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 2))])
+(new button% [parent PJVPanel]
+             [label "3"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 3))])
+(new button% [parent PJVPanel]
+             [label "4"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 4))])
+(new button% [parent PJVPanel]
+             [label "5"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 5))])
+
+(new button% [parent PJVPanel]
+             [label "6"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 6))])
+(new button% [parent PJVPanel]
+             [label "7"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMarkMove 7))])
+(new button% [parent PJVPanel]
+             [label "AI Move"]
+	     [horiz-margin 8]
+             [callback (lambda (button event)
+                         (PJVMakeMove))])
+
+
+(send PJVMyCanvas resume-flush)
+
+]
+
+);cond
+
+);define
+
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^  End of Phase 2, Connect Four Game  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
